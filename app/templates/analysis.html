@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis Exploratorio - Detección de Fraude{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .section-header {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">
+                <i class="fas fa-chart-line"></i> Análisis Exploratorio de Datos
+            </h1>
+            <p class="lead text-muted">Comprensión y exploración del dataset de transacciones</p>
+        </div>
+    </div>
+
+    <!-- Dataset Info -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTransactions">-</div>
+                <div class="stat-label">Total Transacciones</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="stat-value" id="fraudCount">-</div>
+                <div class="stat-label">Fraudes Detectados</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="stat-value" id="fraudPercentage">-</div>
+                <div class="stat-label">% de Fraude</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <div class="stat-value" id="featuresCount">-</div>
+                <div class="stat-label">Características</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Distribution -->
+    <div class="section-header">
+        <h3><i class="fas fa-chart-pie"></i> Distribución de Clases</h3>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="classDistributionPie"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="classDistributionBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Imbalance Warning -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle"></i> Desbalance de Clases Detectado</h5>
+                <p class="mb-0">
+                    El dataset presenta un fuerte desbalance de clases. 
+                    Se recomienda aplicar técnicas de balanceo como SMOTE o under-sampling 
+                    antes del entrenamiento para mejorar el rendimiento del modelo.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Amount Analysis -->
+    <div class="section-header">
+        <h3><i class="fas fa-dollar-sign"></i> Análisis de Montos</h3>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="amountDistribution"></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <div id="amountBoxplot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Analysis -->
+    <div class="section-header">
+        <h3><i class="fas fa-clock"></i> Análisis Temporal</h3>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <div id="timeDistribution"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Correlation Analysis -->
+    <div class="section-header">
+        <h3><i class="fas fa-project-diagram"></i> Análisis de Correlación</h3>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="chart-container">
+                <div id="correlationHeatmap"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Importance Preview -->
+    <div class="section-header">
+        <h3><i class="fas fa-star"></i> Vista Previa de Características</h3>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="featuresTable">
+                            <thead>
+                                <tr>
+                                    <th>Característica</th>
+                                    <th>Media (Normal)</th>
+                                    <th>Media (Fraude)</th>
+                                    <th>Diferencia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Se llenará con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5><i class="fas fa-arrow-right"></i> Siguiente Paso: Preparación de Datos</h5>
+                    <p>Una vez completado el análisis exploratorio, procederemos a:</p>
+                    <ul>
+                        <li>Aplicar técnicas de balanceo de clases (SMOTE/Under-sampling)</li>
+                        <li>Escalar las características numéricas</li>
+                        <li>Dividir los datos en conjuntos de entrenamiento y prueba</li>
+                        <li>Entrenar múltiples modelos de Machine Learning</li>
+                    </ul>
+                    <a href="{{ url_for('main.preprocessing') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-cogs"></i> Ir a Preparación de Datos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Cargar datos del análisis
+    async function loadAnalysis() {
+        try {
+            const response = await fetch('/api/analysis');
+            const data = await response.json();
+            
+            if (data.success) {
+                updateStats(data.statistics);
+                renderCharts(data.visualizations);
+                updateFeaturesTable(data.features);
+            } else {
+                console.error('Error loading analysis:', data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    function updateStats(stats) {
+        document.getElementById('totalTransactions').textContent = 
+            stats.total_transactions.toLocaleString();
+        document.getElementById('fraudCount').textContent = 
+            stats.fraud_count.toLocaleString();
+        document.getElementById('fraudPercentage').textContent = 
+            stats.fraud_percentage.toFixed(2) + '%';
+        document.getElementById('featuresCount').textContent = 
+            stats.features_count;
+    }
+    
+    function renderCharts(viz) {
+        // Gráfico de pastel
+        if (viz.class_distribution_pie) {
+            Plotly.newPlot('classDistributionPie', 
+                JSON.parse(viz.class_distribution_pie).data,
+                JSON.parse(viz.class_distribution_pie).layout
+            );
+        }
+        
+        // Gráfico de barras
+        if (viz.class_distribution_bar) {
+            Plotly.newPlot('classDistributionBar', 
+                JSON.parse(viz.class_distribution_bar).data,
+                JSON.parse(viz.class_distribution_bar).layout
+            );
+        }
+        
+        // Distribución de montos
+        if (viz.amount_distribution) {
+            Plotly.newPlot('amountDistribution', 
+                JSON.parse(viz.amount_distribution).data,
+                JSON.parse(viz.amount_distribution).layout
+            );
+        }
+        
+        // Boxplot de montos
+        if (viz.amount_boxplot) {
+            Plotly.newPlot('amountBoxplot', 
+                JSON.parse(viz.amount_boxplot).data,
+                JSON.parse(viz.amount_boxplot).layout
+            );
+        }
+        
+        // Distribución temporal
+        if (viz.time_distribution) {
+            Plotly.newPlot('timeDistribution', 
+                JSON.parse(viz.time_distribution).data,
+                JSON.parse(viz.time_distribution).layout
+            );
+        }
+        
+        // Heatmap de correlación
+        if (viz.correlation_heatmap) {
+            Plotly.newPlot('correlationHeatmap', 
+                JSON.parse(viz.correlation_heatmap).data,
+                JSON.parse(viz.correlation_heatmap).layout
+            );
+        }
+    }
+    
+    function updateFeaturesTable(features) {
+        const tbody = document.querySelector('#featuresTable tbody');
+        tbody.innerHTML = '';
+        
+        features.forEach(feature => {
+            const row = document.createElement('tr');
+            const diff = Math.abs(feature.mean_fraud - feature.mean_normal);
+            
+            row.innerHTML = `
+                <td><strong>${feature.name}</strong></td>
+                <td>${feature.mean_normal.toFixed(4)}</td>
+                <td>${feature.mean_fraud.toFixed(4)}</td>
+                <td><span class="badge bg-${diff > 0.5 ? 'danger' : 'secondary'}">${diff.toFixed(4)}</span></td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Cargar análisis al iniciar
+    document.addEventListener('DOMContentLoaded', loadAnalysis);
+</script>
+{% endblock %}

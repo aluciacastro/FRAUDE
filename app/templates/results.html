@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados - Detección de Fraude{% endblock %}
+
+{% block extra_css %}
+<style>
+    .model-card {
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .model-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .model-card.best-model {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    }
+    
+    .metric-badge {
+        font-size: 1.2rem;
+        padding: 10px 15px;
+        margin: 5px;
+        border-radius: 20px;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    
+    .winner-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #ffd700;
+        color: #000;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">
+                <i class="fas fa-trophy"></i> Resultados del Modelado
+            </h1>
+            <p class="lead text-muted">Comparación y evaluación de modelos de Machine Learning</p>
+        </div>
+    </div>
+
+    <!-- Best Model Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <h4 class="alert-heading">
+                    <i class="fas fa-award"></i> Mejor Modelo: <span id="bestModelName">-</span>
+                </h4>
+                <hr>
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Accuracy:</strong> <span id="bestAccuracy">-</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Precision:</strong> <span id="bestPrecision">-</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Recall:</strong> <span id="bestRecall">-</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>F1-Score:</strong> <span id="bestF1">-</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table"></i> Comparación de Modelos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="comparisonTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Modelo</th>
+                                    <th>Accuracy</th>
+                                    <th>Precision</th>
+                                    <th>Recall</th>
+                                    <th>F1-Score</th>
+                                    <th>ROC-AUC</th>
+                                    <th>Tiempo (s)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Se llenará con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Model Cards -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="fas fa-robot"></i> Detalles de Modelos</h3>
+        </div>
+        <div id="modelCards" class="row">
+            <!-- Se llenará con JavaScript -->
+        </div>
+    </div>
+
+    <!-- Visualizations -->
+    <div class="row mb-4">
+        <!-- ROC Curves -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-line"></i> Curvas ROC</h5>
+                <div id="rocCurves"></div>
+            </div>
+        </div>
+        
+        <!-- PR Curves -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-area"></i> Curvas Precision-Recall</h5>
+                <div id="prCurves"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confusion Matrices -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="fas fa-th"></i> Matrices de Confusión</h3>
+        </div>
+        <div id="confusionMatrices" class="row">
+            <!-- Se llenará con JavaScript -->
+        </div>
+    </div>
+
+    <!-- Comparison Charts -->
+    <div class="row mb-4">
+        <!-- Metrics Radar -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-radar"></i> Comparación de Métricas</h5>
+                <div id="metricsRadar"></div>
+            </div>
+        </div>
+        
+        <!-- Metrics Bar Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-container">
+                <h5><i class="fas fa-chart-bar"></i> Métricas por Modelo</h5>
+                <div id="metricsBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Información de Entrenamiento
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Método de Balanceo:</strong> <span id="balanceMethod">-</span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Método de Escalado:</strong> <span id="scaleMethod">-</span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Tiempo Total:</strong> <span id="totalTime">-</span></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Conjunto de Entrenamiento:</strong> <span id="trainSize">-</span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Conjunto de Prueba:</strong> <span id="testSize">-</span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Fecha:</strong> <span id="trainingDate">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h5><i class="fas fa-download"></i> Descargar Resultados</h5>
+                    <div class="btn-group mt-3" role="group">
+                        <button class="btn btn-success" onclick="downloadReport()">
+                            <i class="fas fa-file-pdf"></i> Reporte PDF
+                        </button>
+                        <button class="btn btn-primary" onclick="downloadModels()">
+                            <i class="fas fa-save"></i> Guardar Modelos
+                        </button>
+                        <button class="btn btn-info" onclick="downloadData()">
+                            <i class="fas fa-table"></i> Exportar CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-home"></i> Volver al Inicio
+            </a>
+            <a href="{{ url_for('main.predict') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-search"></i> Hacer Predicciones
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Cargar resultados
+    async function loadResults() {
+        try {
+            const response = await fetch('/api/results');
+            const data = await response.json();
+            
+            if (data.success) {
+                updateBestModel(data.best_model, data.metrics[data.best_model]);
+                updateComparisonTable(data.comparison_table);
+                renderModelCards(data.models);
+                renderCharts(data.visualizations);
+                updateTrainingInfo(data.training_info);
+            } else {
+                console.error('Error loading results:', data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+    function updateBestModel(modelName, metrics) {
+        document.getElementById('bestModelName').textContent = modelName;
+        document.getElementById('bestAccuracy').textContent = metrics.accuracy.toFixed(4);
+        document.getElementById('bestPrecision').textContent = metrics.precision.toFixed(4);
+        document.getElementById('bestRecall').textContent = metrics.recall.toFixed(4);
+        document.getElementById('bestF1').textContent = metrics.f1_score.toFixed(4);
+    }
+    
+    function updateComparisonTable(tableData) {
+        const tbody = document.querySelector('#comparisonTable tbody');
+        tbody.innerHTML = '';
+        
+        tableData.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            if (index === 0) tr.classList.add('table-success');
+            
+            tr.innerHTML = `
+                <td><strong>${row.Model}</strong></td>
+                <td>${row.Accuracy.toFixed(4)}</td>
+                <td>${row.Precision.toFixed(4)}</td>
+                <td>${row.Recall.toFixed(4)}</td>
+                <td>${row['F1-Score'].toFixed(4)}</td>
+                <td>${row['ROC-AUC'].toFixed(4)}</td>
+                <td>${row.Time.toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    
+    function renderModelCards(models) {
+        const container = document.getElementById('modelCards');
+        container.innerHTML = '';
+        
+        Object.entries(models).forEach(([name, metrics], index) => {
+            const isBest = index === 0;
+            const card = document.createElement('div');
+            card.className = 'col-md-6 col-lg-3';
+            
+            card.innerHTML = `
+                <div class="model-card ${isBest ? 'best-model' : ''}" style="position: relative;">
+                    ${isBest ? '<div class="winner-badge"><i class="fas fa-crown"></i> Mejor</div>' : ''}
+                    <h5><i class="fas fa-robot"></i> ${name}</h5>
+                    <hr>
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <span class="badge bg-primary metric-badge">Acc: ${metrics.accuracy.toFixed(3)}</span>
+                        <span class="badge bg-success metric-badge">Prec: ${metrics.precision.toFixed(3)}</span>
+                        <span class="badge bg-info metric-badge">Rec: ${metrics.recall.toFixed(3)}</span>
+                        <span class="badge bg-warning metric-badge">F1: ${metrics.f1_score.toFixed(3)}</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+    
+    function renderCharts(viz) {
+        // ROC Curves
+        if (viz.roc_curves) {
+            Plotly.newPlot('rocCurves', 
+                JSON.parse(viz.roc_curves).data,
+                JSON.parse(viz.roc_curves).layout
+            );
+        }
+        
+        // PR Curves
+        if (viz.pr_curves) {
+            Plotly.newPlot('prCurves', 
+                JSON.parse(viz.pr_curves).data,
+                JSON.parse(viz.pr_curves).layout
+            );
+        }
+        
+        // Confusion Matrices
+        if (viz.confusion_matrices) {
+            const container = document.getElementById('confusionMatrices');
+            viz.confusion_matrices.forEach((cm, index) => {
+                const div = document.createElement('div');
+                div.className = 'col-md-6 col-lg-3 mb-3';
+                div.innerHTML = '<div class="chart-container"><div id="cm' + index + '"></div></div>';
+                container.appendChild(div);
+                
+                Plotly.newPlot('cm' + index, 
+                    JSON.parse(cm).data,
+                    JSON.parse(cm).layout
+                );
+            });
+        }
+        
+        // Metrics Radar
+        if (viz.metrics_radar) {
+            Plotly.newPlot('metricsRadar', 
+                JSON.parse(viz.metrics_radar).data,
+                JSON.parse(viz.metrics_radar).layout
+            );
+        }
+        
+        // Metrics Bar
+        if (viz.metrics_bar) {
+            Plotly.newPlot('metricsBar', 
+                JSON.parse(viz.metrics_bar).data,
+                JSON.parse(viz.metrics_bar).layout
+            );
+        }
+    }
+    
+    function updateTrainingInfo(info) {
+        document.getElementById('balanceMethod').textContent = info.balance_method;
+        document.getElementById('scaleMethod').textContent = info.scale_method;
+        document.getElementById('totalTime').textContent = info.total_time + 's';
+        document.getElementById('trainSize').textContent = info.train_size.toLocaleString();
+        document.getElementById('testSize').textContent = info.test_size.toLocaleString();
+        document.getElementById('trainingDate').textContent = new Date(info.date).toLocaleString();
+    }
+    
+    function downloadReport() {
+        window.location.href = '/api/download/report';
+    }
+    
+    function downloadModels() {
+        window.location.href = '/api/download/models';
+    }
+    
+    function downloadData() {
+        window.location.href = '/api/download/data';
+    }
+    
+    // Cargar resultados al iniciar
+    document.addEventListener('DOMContentLoaded', loadResults);
+</script>
+{% endblock %}

@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Detección de Fraude{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-gradient py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4 text-white">
+                    Sistema de Detección de Fraude
+                </h1>
+                <p class="lead mb-4 text-white">
+                    Análisis de transacciones financieras usando Machine Learning
+                    con la metodología CRISP-DM
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-shield-alt fa-10x text-white opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pipeline Steps -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Fases del proyecto con la metodología CRISP-DM</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm phase-card" id="phase1" data-phase="1">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-database fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">1. Comprensión de Datos</h5>
+                        <p class="card-text">Carga y exploración del dataset de transacciones</p>
+                        <span class="badge bg-secondary phase-status">Pendiente</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm phase-card disabled" id="phase2" data-phase="2">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-broom fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">2. Preparación de Datos</h5>
+                        <p class="card-text">Limpieza, transformación y balanceo de clases</p>
+                        <span class="badge bg-secondary phase-status">Bloqueado</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm phase-card disabled" id="phase3" data-phase="3">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-robot fa-3x text-info"></i>
+                        </div>
+                        <h5 class="card-title">3. Modelado</h5>
+                        <p class="card-text">Entrenamiento de múltiples modelos de ML</p>
+                        <span class="badge bg-secondary phase-status">Bloqueado</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm phase-card disabled" id="phase4" data-phase="4">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-chart-bar fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">4. Evaluación</h5>
+                        <p class="card-text">Análisis de métricas y rendimiento</p>
+                        <span class="badge bg-secondary phase-status">Bloqueado</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm phase-card disabled" id="phase5" data-phase="5">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-eye fa-3x text-danger"></i>
+                        </div>
+                        <h5 class="card-title">5. Visualización</h5>
+                        <p class="card-text">Gráficos interactivos con Plotly</p>
+                        <span class="badge bg-secondary phase-status">Bloqueado</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm phase-card disabled" id="phase6" data-phase="6">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-rocket fa-3x text-purple"></i>
+                        </div>
+                        <h5 class="card-title">6. Despliegue</h5>
+                        <p class="card-text">Aplicación web interactiva</p>
+                        <span class="badge bg-secondary phase-status">Bloqueado</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Upload Section -->
+<section class="py-5" id="upload">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">
+                            <i class="fas fa-upload"></i> Cargar Dataset
+                        </h2>
+                        
+                        <!-- Dataset Info -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Dataset Recomendado</h6>
+                            <p class="mb-0">
+                                <strong>Credit Card Fraud Detection</strong> de Kaggle<br>
+                                <a href="https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud" target="_blank">
+                                    Descargar desde Kaggle
+                                </a>
+                            </p>
+                        </div>
+
+                        <!-- Upload Form -->
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <label for="fileInput" class="form-label">Seleccionar archivo CSV</label>
+                                <input type="file" class="form-control" id="fileInput" accept=".csv" required>
+                                <div class="form-text">El archivo debe ser un CSV con las transacciones</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="uploadBtn">
+                                <i class="fas fa-upload"></i> Subir y Analizar
+                            </button>
+                        </form>
+
+                        <!-- Loading Spinner -->
+                        <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Procesando datos...</p>
+                        </div>
+
+                        <!-- Data Info -->
+                        <div id="dataInfo" class="mt-4" style="display: none;">
+                            <div class="alert alert-success">
+                                <h6><i class="fas fa-check-circle"></i> Datos Cargados Exitosamente</h6>
+                                <div id="dataInfoContent"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Phase 1: Data Understanding -->
+<section class="py-5 bg-light" id="phase1Section" style="display: none;">
+    <div class="container">
+        <h2 class="text-center mb-4">
+            <i class="fas fa-database"></i> Fase 1: Comprensión de Datos
+        </h2>
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <button class="btn btn-success btn-lg w-100" id="analyzeBtn">
+                    <i class="fas fa-chart-line"></i> Realizar Análisis Exploratorio
+                </button>
+            </div>
+        </div>
+
+        <div id="explorationResults" style="display: none;">
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body">
+                            <h3 id="totalTransactions">-</h3>
+                            <p class="mb-0">Total Transacciones</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-danger text-white">
+                        <div class="card-body">
+                            <h3 id="fraudCount">-</h3>
+                            <p class="mb-0">Fraudes</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-warning text-white">
+                        <div class="card-body">
+                            <h3 id="fraudPercentage">-</h3>
+                            <p class="mb-0">% Fraude</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-info text-white">
+                        <div class="card-body">
+                            <h3 id="normalCount">-</h3>
+                            <p class="mb-0">Normales</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualizations -->
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Distribución de Clases</h5>
+                            <div id="classDistChart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Mapa de Correlación</h5>
+                            <div id="correlationHeatmap"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-primary btn-lg" id="continueToPreprocessing">
+                    <i class="fas fa-arrow-right"></i> Continuar a Preparación de Datos
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Phase 2: Data Preparation -->
+<section class="py-5" id="phase2Section" style="display: none;">
+    <div class="container">
+        <h2 class="text-center mb-4">
+            <i class="fas fa-broom"></i> Fase 2: Preparación de Datos
+        </h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5 class="mb-4"><i class="fas fa-cog"></i> Configuración del Preprocesamiento</h5>
+                
+                <form id="trainingForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="balanceMethod" class="form-label">Método de Balanceo</label>
+                            <select class="form-select" id="balanceMethod">
+                                <option value="smote" selected>SMOTE (Synthetic Minority Over-sampling)</option>
+                                <option value="undersample">Under Sampling</option>
+                                <option value="combined">Combinado (SMOTE + Under-sampling)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="scaleMethod" class="form-label">Método de Escalado</label>
+                            <select class="form-select" id="scaleMethod">
+                                <option value="robust" selected>Robust Scaler</option>
+                                <option value="standard">Standard Scaler</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-play"></i> Entrenar Modelos
+                    </button>
+                </form>
+
+                <div id="trainingProgress" class="mt-3" style="display: none;">
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%">
+                            Entrenando modelos...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPhase = 0;
+    
+    // Función para actualizar estado de fases
+    function updatePhaseStatus(phase, status) {
+        const phaseCard = document.getElementById(`phase${phase}`);
+        const statusBadge = phaseCard.querySelector('.phase-status');
+        
+        phaseCard.classList.remove('disabled');
+        
+        if (status === 'completed') {
+            statusBadge.textContent = 'Completado';
+            statusBadge.className = 'badge bg-success phase-status';
+            phaseCard.classList.add('completed');
+        } else if (status === 'active') {
+            statusBadge.textContent = 'En Progreso';
+            statusBadge.className = 'badge bg-primary phase-status';
+            phaseCard.classList.add('active');
+        }
+    }
+    
+    // Manejar upload de archivo
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('Por favor seleccione un archivo');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Mostrar spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('uploadBtn').disabled = true;
+        
+        try {
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Mostrar información
+                document.getElementById('dataInfoContent').innerHTML = `
+                    <ul class="mb-0">
+                        <li><strong>Filas:</strong> ${data.info.rows.toLocaleString()}</li>
+                        <li><strong>Columnas:</strong> ${data.info.columns}</li>
+                        <li><strong>Tamaño:</strong> ${data.info.size_mb} MB</li>
+                    </ul>
+                `;
+                document.getElementById('dataInfo').style.display = 'block';
+                
+                // Habilitar Fase 1
+                updatePhaseStatus(1, 'active');
+                currentPhase = 1;
+                
+                // Mostrar sección de Fase 1
+                document.getElementById('phase1Section').style.display = 'block';
+                document.getElementById('phase1Section').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error al subir archivo: ' + error);
+        } finally {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = false;
+        }
+    });
+    
+    // Manejar análisis exploratorio
+    document.getElementById('analyzeBtn').addEventListener('click', async function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando...';
+        
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target_col: 'Class'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Completar Fase 1
+                updatePhaseStatus(1, 'completed');
+                
+                // Mostrar resultados
+                const stats = data.statistics;
+                const classDist = stats.class_distribution;
+                const classPct = stats.class_percentage;
+                
+                const total = Object.values(classDist).reduce((a, b) => a + b, 0);
+                document.getElementById('totalTransactions').textContent = total.toLocaleString();
+                document.getElementById('fraudCount').textContent = classDist['1'].toLocaleString();
+                document.getElementById('normalCount').textContent = classDist['0'].toLocaleString();
+                document.getElementById('fraudPercentage').textContent = classPct['1'].toFixed(2) + '%';
+                
+                document.getElementById('explorationResults').style.display = 'block';
+                
+                // Renderizar visualizaciones
+                if (data.visualizations.class_distribution) {
+                    Plotly.newPlot('classDistChart', 
+                        JSON.parse(data.visualizations.class_distribution).data,
+                        JSON.parse(data.visualizations.class_distribution).layout
+                    );
+                }
+                
+                if (data.visualizations.correlation_heatmap) {
+                    Plotly.newPlot('correlationHeatmap', 
+                        JSON.parse(data.visualizations.correlation_heatmap).data,
+                        JSON.parse(data.visualizations.correlation_heatmap).layout
+                    );
+                }
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error en análisis: ' + error);
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-chart-line"></i> Realizar Análisis Exploratorio';
+        }
+    });
+    
+    // Continuar a preprocesamiento
+    document.getElementById('continueToPreprocessing').addEventListener('click', function() {
+        updatePhaseStatus(2, 'active');
+        currentPhase = 2;
+        document.getElementById('phase2Section').style.display = 'block';
+        document.getElementById('phase2Section').scrollIntoView({ behavior: 'smooth' });
+    });
+    
+    // Manejar entrenamiento
+    document.getElementById('trainingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const balanceMethod = document.getElementById('balanceMethod').value;
+        const scaleMethod = document.getElementById('scaleMethod').value;
+        
+        document.getElementById('trainingProgress').style.display = 'block';
+        
+        try {
+            const response = await fetch('/train', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target_col: 'Class',
+                    balance_method: balanceMethod,
+                    scale_method: scaleMethod
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Completar fases 2, 3, 4, 5, 6
+                updatePhaseStatus(2, 'completed');
+                updatePhaseStatus(3, 'completed');
+                updatePhaseStatus(4, 'completed');
+                updatePhaseStatus(5, 'completed');
+                updatePhaseStatus(6, 'completed');
+                
+                // Redirigir a resultados
+                window.location.href = '/results';
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error en entrenamiento: ' + error);
+        } finally {
+            document.getElementById('trainingProgress').style.display = 'none';
+        }
+    });
+</script>
+
+<style>
+    .phase-card {
+        transition: all 0.3s ease;
+        border: 2px solid #dee2e6;
+    }
+    
+    .phase-card.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    
+    .phase-card.active {
+        border-color: #0d6efd;
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+    }
+    
+    .phase-card.completed {
+        border-color: #198754;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    }
+    
+    .bg-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+{% endblock %}
