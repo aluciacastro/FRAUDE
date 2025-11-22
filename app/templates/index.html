@@ -2,512 +2,680 @@
 
 {% block title %}Inicio - Detección de Fraude{% endblock %}
 
+{% block extra_css %}
+<style>
+.main-container {
+    display: flex;
+    min-height: calc(100vh - 200px);
+    gap: 0;
+    margin-top: 20px;
+}
+
+.phases-section {
+    flex: 1;
+    transition: all 0.3s ease;
+    padding-right: 20px;
+}
+
+.phases-section.compressed {
+    flex: 0 0 40%;
+}
+
+.detail-panel {
+    flex: 0 0 0;
+    width: 0;
+    overflow: hidden;
+    background: white;
+    border-left: 3px solid #0d6efd;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.detail-panel.active {
+    flex: 0 0 58%;
+    width: 58%;
+}
+
+.detail-content {
+    padding: 30px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.close-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 10;
+    transition: all 0.2s;
+}
+
+.close-panel:hover {
+    background: #bb2d3b;
+    transform: rotate(90deg);
+}
+
+.phase-card {
+    transition: all 0.3s ease;
+    border: 2px solid #dee2e6;
+    cursor: pointer;
+}
+
+.phase-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #0d6efd;
+}
+
+.phase-card.selected {
+    border-color: #0d6efd;
+    background: linear-gradient(135deg, #e7f3ff 0%, #ffffff 100%);
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+}
+
+.bg-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.text-purple {
+    color: #764ba2;
+}
+
+.hero-stats {
+    background: rgba(255,255,255,0.95);
+    border-radius: 15px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+}
+
+.phase-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    margin: -30px -30px 30px -30px;
+    border-radius: 0;
+}
+
+.metric-card {
+    background: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section bg-gradient py-5">
+<section class="hero-section bg-gradient py-4">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4 text-white">
-                    Sistema de Detección de Fraude
-                </h1>
-                <p class="lead mb-4 text-white">
-                    Análisis de transacciones financieras usando Machine Learning
-                    con la metodología CRISP-DM
-                </p>
-            </div>
-            <div class="col-lg-6">
-                <div class="text-center">
-                    <i class="fas fa-shield-alt fa-10x text-white opacity-75"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Pipeline Steps -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5">Fases del proyecto con la metodología CRISP-DM</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm phase-card" id="phase1" data-phase="1">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-database fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">1. Comprensión de Datos</h5>
-                        <p class="card-text">Carga y exploración del dataset de transacciones</p>
-                        <span class="badge bg-secondary phase-status">Pendiente</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm phase-card disabled" id="phase2" data-phase="2">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-broom fa-3x text-success"></i>
-                        </div>
-                        <h5 class="card-title">2. Preparación de Datos</h5>
-                        <p class="card-text">Limpieza, transformación y balanceo de clases</p>
-                        <span class="badge bg-secondary phase-status">Bloqueado</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm phase-card disabled" id="phase3" data-phase="3">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-robot fa-3x text-info"></i>
-                        </div>
-                        <h5 class="card-title">3. Modelado</h5>
-                        <p class="card-text">Entrenamiento de múltiples modelos de ML</p>
-                        <span class="badge bg-secondary phase-status">Bloqueado</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm phase-card disabled" id="phase4" data-phase="4">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-chart-bar fa-3x text-warning"></i>
-                        </div>
-                        <h5 class="card-title">4. Evaluación</h5>
-                        <p class="card-text">Análisis de métricas y rendimiento</p>
-                        <span class="badge bg-secondary phase-status">Bloqueado</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm phase-card disabled" id="phase5" data-phase="5">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-eye fa-3x text-danger"></i>
-                        </div>
-                        <h5 class="card-title">5. Visualización</h5>
-                        <p class="card-text">Gráficos interactivos con Plotly</p>
-                        <span class="badge bg-secondary phase-status">Bloqueado</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 shadow-sm phase-card disabled" id="phase6" data-phase="6">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-rocket fa-3x text-purple"></i>
-                        </div>
-                        <h5 class="card-title">6. Despliegue</h5>
-                        <p class="card-text">Aplicación web interactiva</p>
-                        <span class="badge bg-secondary phase-status">Bloqueado</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Upload Section -->
-<section class="py-5" id="upload">
-    <div class="container">
-        <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <h2 class="text-center mb-4">
-                            <i class="fas fa-upload"></i> Cargar Dataset
-                        </h2>
-                        
-                        <!-- Dataset Info -->
-                        <div class="alert alert-info">
-                            <h6><i class="fas fa-info-circle"></i> Dataset Recomendado</h6>
-                            <p class="mb-0">
-                                <strong>Credit Card Fraud Detection</strong> de Kaggle<br>
-                                <a href="https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud" target="_blank">
-                                    Descargar desde Kaggle
-                                </a>
-                            </p>
-                        </div>
-
-                        <!-- Upload Form -->
-                        <form id="uploadForm" enctype="multipart/form-data">
-                            <div class="mb-4">
-                                <label for="fileInput" class="form-label">Seleccionar archivo CSV</label>
-                                <input type="file" class="form-control" id="fileInput" accept=".csv" required>
-                                <div class="form-text">El archivo debe ser un CSV con las transacciones</div>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="uploadBtn">
-                                <i class="fas fa-upload"></i> Subir y Analizar
-                            </button>
-                        </form>
-
-                        <!-- Loading Spinner -->
-                        <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                            <p class="mt-2">Procesando datos...</p>
-                        </div>
-
-                        <!-- Data Info -->
-                        <div id="dataInfo" class="mt-4" style="display: none;">
-                            <div class="alert alert-success">
-                                <h6><i class="fas fa-check-circle"></i> Datos Cargados Exitosamente</h6>
-                                <div id="dataInfoContent"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Phase 1: Data Understanding -->
-<section class="py-5 bg-light" id="phase1Section" style="display: none;">
-    <div class="container">
-        <h2 class="text-center mb-4">
-            <i class="fas fa-database"></i> Fase 1: Comprensión de Datos
-        </h2>
-        
-        <div class="row mb-4">
-            <div class="col-12">
-                <button class="btn btn-success btn-lg w-100" id="analyzeBtn">
-                    <i class="fas fa-chart-line"></i> Realizar Análisis Exploratorio
-                </button>
-            </div>
-        </div>
-
-        <div id="explorationResults" style="display: none;">
-            <!-- Statistics Cards -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card text-center bg-primary text-white">
-                        <div class="card-body">
-                            <h3 id="totalTransactions">-</h3>
-                            <p class="mb-0">Total Transacciones</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center bg-danger text-white">
-                        <div class="card-body">
-                            <h3 id="fraudCount">-</h3>
-                            <p class="mb-0">Fraudes</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center bg-warning text-white">
-                        <div class="card-body">
-                            <h3 id="fraudPercentage">-</h3>
-                            <p class="mb-0">% Fraude</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card text-center bg-info text-white">
-                        <div class="card-body">
-                            <h3 id="normalCount">-</h3>
-                            <p class="mb-0">Normales</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Visualizations -->
-            <div class="row">
-                <div class="col-lg-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5>Distribución de Clases</h5>
-                            <div id="classDistChart"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5>Mapa de Correlación</h5>
-                            <div id="correlationHeatmap"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-center mt-4">
-                <button class="btn btn-primary btn-lg" id="continueToPreprocessing">
-                    <i class="fas fa-arrow-right"></i> Continuar a Preparación de Datos
-                </button>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Phase 2: Data Preparation -->
-<section class="py-5" id="phase2Section" style="display: none;">
-    <div class="container">
-        <h2 class="text-center mb-4">
-            <i class="fas fa-broom"></i> Fase 2: Preparación de Datos
-        </h2>
-        
-        <div class="card">
-            <div class="card-body">
-                <h5 class="mb-4"><i class="fas fa-cog"></i> Configuración del Preprocesamiento</h5>
+                <h1 class="display-5 fw-bold mb-3 text-white">
+                    <i class="fas fa-shield-alt"></i> Sistema de Detección de Fraude
+                </h1>
+                <p class="lead mb-3 text-white">
+                    Análisis completo usando Machine Learning y metodología CRISP-DM
+                </p>
                 
-                <form id="trainingForm">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="balanceMethod" class="form-label">Método de Balanceo</label>
-                            <select class="form-select" id="balanceMethod">
-                                <option value="smote" selected>SMOTE (Synthetic Minority Over-sampling)</option>
-                                <option value="undersample">Under Sampling</option>
-                                <option value="combined">Combinado (SMOTE + Under-sampling)</option>
-                            </select>
+                {% if data_available %}
+                <div class="hero-stats">
+                    <div class="row text-center">
+                        <div class="col-3">
+                            <h4 class="text-primary mb-0">{{ dataset_info.shape[0]|number_format }}</h4>
+                            <small class="text-muted">Transacciones</small>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="scaleMethod" class="form-label">Método de Escalado</label>
-                            <select class="form-select" id="scaleMethod">
-                                <option value="robust" selected>Robust Scaler</option>
-                                <option value="standard">Standard Scaler</option>
-                            </select>
+                        <div class="col-3">
+                            <h4 class="text-danger mb-0">{{ dataset_info.class_distribution.fraud_count|number_format }}</h4>
+                            <small class="text-muted">Fraudes</small>
+                        </div>
+                        <div class="col-3">
+                            <h4 class="text-success mb-0">{{ dataset_info.class_distribution.normal_count|number_format }}</h4>
+                            <small class="text-muted">Normales</small>
+                        </div>
+                        <div class="col-3">
+                            <h4 class="text-warning mb-0">{{ dataset_info.class_distribution.imbalance_ratio }}</h4>
+                            <small class="text-muted">Ratio</small>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-success btn-lg w-100">
-                        <i class="fas fa-play"></i> Entrenar Modelos
-                    </button>
-                </form>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Datos no disponibles</h5>
+                    <p class="mb-0">{{ error_message }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="fas fa-shield-alt fa-7x text-white opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</section>
 
-                <div id="trainingProgress" class="mt-3" style="display: none;">
-                    <div class="progress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                             role="progressbar" style="width: 100%">
-                            Entrenando modelos...
+<!-- Main Container con Panel Lateral -->
+<div class="container-fluid">
+    <div class="main-container">
+        <!-- Sección de Fases -->
+        <div class="phases-section" id="phasesSection">
+            <h2 class="text-center mb-4">Fases del Pipeline CRISP-DM</h2>
+            <p class="text-center text-muted mb-4">Haz clic en cada fase para ver su análisis detallado</p>
+            
+            <div class="row g-4">
+                <!-- Fase 1 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm phase-card" data-phase="1">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-database fa-4x text-primary"></i>
+                            </div>
+                            <h5 class="card-title">1. Comprensión de Datos</h5>
+                            <p class="card-text small">Carga y análisis inicial del dataset</p>
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fase 2 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm phase-card" data-phase="2">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-line fa-4x text-success"></i>
+                            </div>
+                            <h5 class="card-title">2. Exploración de Datos</h5>
+                            <p class="card-text small">Análisis estadístico y visualizaciones</p>
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fase 3 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm phase-card" data-phase="3">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-broom fa-4x text-info"></i>
+                            </div>
+                            <h5 class="card-title">3. Preparación de Datos</h5>
+                            <p class="card-text small">Limpieza, transformación y balanceo</p>
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fase 4 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm phase-card" data-phase="4">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-robot fa-4x text-warning"></i>
+                            </div>
+                            <h5 class="card-title">4. Modelado</h5>
+                            <p class="card-text small">Entrenamiento de modelos ML</p>
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fase 5 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm phase-card" data-phase="5">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-bar fa-4x text-danger"></i>
+                            </div>
+                            <h5 class="card-title">5. Evaluación</h5>
+                            <p class="card-text small">Métricas y comparación de modelos</p>
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fase 6 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm phase-card" data-phase="6">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-rocket fa-4x text-purple"></i>
+                            </div>
+                            <h5 class="card-title">6. Despliegue</h5>
+                            <p class="card-text small">Aplicación web interactiva</p>
+                            <span class="badge bg-info">Activo</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Panel Lateral de Detalles -->
+        <div class="detail-panel" id="detailPanel">
+            <button class="close-panel" id="closePanel">×</button>
+            <div class="detail-content" id="detailContent">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</section>
+</div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    let currentPhase = 0;
+document.addEventListener('DOMContentLoaded', function() {
+    const phaseCards = document.querySelectorAll('.phase-card');
+    const detailPanel = document.getElementById('detailPanel');
+    const detailContent = document.getElementById('detailContent');
+    const phasesSection = document.getElementById('phasesSection');
+    const closePanel = document.getElementById('closePanel');
+    let currentPhase = null;
     
-    // Función para actualizar estado de fases
-    function updatePhaseStatus(phase, status) {
-        const phaseCard = document.getElementById(`phase${phase}`);
-        const statusBadge = phaseCard.querySelector('.phase-status');
-        
-        phaseCard.classList.remove('disabled');
-        
-        if (status === 'completed') {
-            statusBadge.textContent = 'Completado';
-            statusBadge.className = 'badge bg-success phase-status';
-            phaseCard.classList.add('completed');
-        } else if (status === 'active') {
-            statusBadge.textContent = 'En Progreso';
-            statusBadge.className = 'badge bg-primary phase-status';
-            phaseCard.classList.add('active');
-        }
+    // Manejar clic en tarjetas de fase
+    phaseCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const phase = this.dataset.phase;
+            
+            // Si se hace clic en la misma fase, cerrar panel
+            if (currentPhase === phase && detailPanel.classList.contains('active')) {
+                closePanelFunc();
+                return;
+            }
+            
+            currentPhase = phase;
+            
+            // Actualizar selección visual
+            phaseCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            // Abrir panel y cargar contenido
+            openPanel();
+            loadPhaseData(phase);
+        });
+    });
+    
+    // Cerrar panel
+    closePanel.addEventListener('click', closePanelFunc);
+    
+    function openPanel() {
+        detailPanel.classList.add('active');
+        phasesSection.classList.add('compressed');
     }
     
-    // Manejar upload de archivo
-    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
-        
-        if (!file) {
-            alert('Por favor seleccione un archivo');
-            return;
-        }
-        
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // Mostrar spinner
-        document.getElementById('loadingSpinner').style.display = 'block';
-        document.getElementById('uploadBtn').disabled = true;
+    function closePanelFunc() {
+        detailPanel.classList.remove('active');
+        phasesSection.classList.remove('compressed');
+        phaseCards.forEach(c => c.classList.remove('selected'));
+        currentPhase = null;
+    }
+    
+    async function loadPhaseData(phase) {
+        // Mostrar loading
+        detailContent.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3">Cargando Fase ${phase}...</p>
+            </div>
+        `;
         
         try {
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch('/api/phase' + phase);
+            const result = await response.json();
             
-            const data = await response.json();
-            
-            if (data.success) {
-                // Mostrar información
-                document.getElementById('dataInfoContent').innerHTML = `
-                    <ul class="mb-0">
-                        <li><strong>Filas:</strong> ${data.info.rows.toLocaleString()}</li>
-                        <li><strong>Columnas:</strong> ${data.info.columns}</li>
-                        <li><strong>Tamaño:</strong> ${data.info.size_mb} MB</li>
-                    </ul>
+            if (result.success) {
+                displayPhaseData(phase, result.data, result.visualizations);
+            } else {
+                detailContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Error</h5>
+                        <p>${result.error}</p>
+                    </div>
                 `;
-                document.getElementById('dataInfo').style.display = 'block';
-                
-                // Habilitar Fase 1
-                updatePhaseStatus(1, 'active');
-                currentPhase = 1;
-                
-                // Mostrar sección de Fase 1
-                document.getElementById('phase1Section').style.display = 'block';
-                document.getElementById('phase1Section').scrollIntoView({ behavior: 'smooth' });
-            } else {
-                alert('Error: ' + data.error);
             }
         } catch (error) {
-            alert('Error al subir archivo: ' + error);
-        } finally {
-            document.getElementById('loadingSpinner').style.display = 'none';
-            document.getElementById('uploadBtn').disabled = false;
+            detailContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Error de Conexión</h5>
+                    <p>${error.message}</p>
+                </div>
+            `;
         }
-    });
+    }
     
-    // Manejar análisis exploratorio
-    document.getElementById('analyzeBtn').addEventListener('click', async function() {
-        this.disabled = true;
-        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando...';
+    function displayPhaseData(phase, data, visualizations) {
+        const phaseTitles = {
+            1: '<i class="fas fa-database"></i> Fase 1: Comprensión de Datos',
+            2: '<i class="fas fa-chart-line"></i> Fase 2: Exploración de Datos',
+            3: '<i class="fas fa-broom"></i> Fase 3: Preparación de Datos',
+            4: '<i class="fas fa-robot"></i> Fase 4: Modelado',
+            5: '<i class="fas fa-chart-bar"></i> Fase 5: Evaluación',
+            6: '<i class="fas fa-rocket"></i> Fase 6: Despliegue'
+        };
         
-        try {
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    target_col: 'Class'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Completar Fase 1
-                updatePhaseStatus(1, 'completed');
-                
-                // Mostrar resultados
-                const stats = data.statistics;
-                const classDist = stats.class_distribution;
-                const classPct = stats.class_percentage;
-                
-                const total = Object.values(classDist).reduce((a, b) => a + b, 0);
-                document.getElementById('totalTransactions').textContent = total.toLocaleString();
-                document.getElementById('fraudCount').textContent = classDist['1'].toLocaleString();
-                document.getElementById('normalCount').textContent = classDist['0'].toLocaleString();
-                document.getElementById('fraudPercentage').textContent = classPct['1'].toFixed(2) + '%';
-                
-                document.getElementById('explorationResults').style.display = 'block';
-                
-                // Renderizar visualizaciones
-                if (data.visualizations.class_distribution) {
-                    Plotly.newPlot('classDistChart', 
-                        JSON.parse(data.visualizations.class_distribution).data,
-                        JSON.parse(data.visualizations.class_distribution).layout
-                    );
-                }
-                
-                if (data.visualizations.correlation_heatmap) {
-                    Plotly.newPlot('correlationHeatmap', 
-                        JSON.parse(data.visualizations.correlation_heatmap).data,
-                        JSON.parse(data.visualizations.correlation_heatmap).layout
-                    );
-                }
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            alert('Error en análisis: ' + error);
-        } finally {
-            this.disabled = false;
-            this.innerHTML = '<i class="fas fa-chart-line"></i> Realizar Análisis Exploratorio';
+        let html = `<div class="phase-header"><h3 class="mb-0">${phaseTitles[phase]}</h3></div>`;
+        
+        switch(parseInt(phase)) {
+            case 1:
+                html += renderPhase1(data);
+                break;
+            case 2:
+                html += renderPhase2(data, visualizations);
+                break;
+            case 3:
+                html += renderPhase3(data);
+                break;
+            case 4:
+                html += renderPhase4(data);
+                break;
+            case 5:
+                html += renderPhase5(data, visualizations);
+                break;
+            case 6:
+                html += renderPhase6();
+                break;
         }
-    });
-    
-    // Continuar a preprocesamiento
-    document.getElementById('continueToPreprocessing').addEventListener('click', function() {
-        updatePhaseStatus(2, 'active');
-        currentPhase = 2;
-        document.getElementById('phase2Section').style.display = 'block';
-        document.getElementById('phase2Section').scrollIntoView({ behavior: 'smooth' });
-    });
-    
-    // Manejar entrenamiento
-    document.getElementById('trainingForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
         
-        const balanceMethod = document.getElementById('balanceMethod').value;
-        const scaleMethod = document.getElementById('scaleMethod').value;
+        detailContent.innerHTML = html;
         
-        document.getElementById('trainingProgress').style.display = 'block';
-        
-        try {
-            const response = await fetch('/train', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    target_col: 'Class',
-                    balance_method: balanceMethod,
-                    scale_method: scaleMethod
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // Completar fases 2, 3, 4, 5, 6
-                updatePhaseStatus(2, 'completed');
-                updatePhaseStatus(3, 'completed');
-                updatePhaseStatus(4, 'completed');
-                updatePhaseStatus(5, 'completed');
-                updatePhaseStatus(6, 'completed');
-                
-                // Redirigir a resultados
-                window.location.href = '/results';
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            alert('Error en entrenamiento: ' + error);
-        } finally {
-            document.getElementById('trainingProgress').style.display = 'none';
+        // Renderizar gráficos si existen
+        if (visualizations) {
+            setTimeout(() => renderVisualizations(visualizations), 100);
         }
-    });
+    }
+    
+    function renderPhase1(data) {
+        return `
+            <h4 class="mb-3"><i class="fas fa-info-circle"></i> Información del Dataset</h4>
+            
+            <div class="metric-card">
+                <h6 class="text-primary"><i class="fas fa-table"></i> Dimensiones</h6>
+                <p class="mb-1"><strong>Filas:</strong> ${data.shape[0].toLocaleString()}</p>
+                <p class="mb-1"><strong>Columnas:</strong> ${data.shape[1]}</p>
+                <p class="mb-0"><strong>Memoria:</strong> ${data.memory_mb.toFixed(2)} MB</p>
+            </div>
+            
+            <div class="metric-card">
+                <h6 class="text-danger"><i class="fas fa-exclamation-triangle"></i> Distribución de Clases</h6>
+                <p class="mb-1"><strong>Normales:</strong> ${data.class_distribution.normal_count.toLocaleString()} (${data.class_distribution.percentages['0'].toFixed(3)}%)</p>
+                <p class="mb-1"><strong>Fraudes:</strong> ${data.class_distribution.fraud_count.toLocaleString()} (${data.class_distribution.percentages['1'].toFixed(3)}%)</p>
+                <p class="mb-0"><strong>Ratio:</strong> ${data.class_distribution.imbalance_ratio}</p>
+                <div class="alert alert-warning mt-2 mb-0">
+                    <small><i class="fas fa-info-circle"></i> Dataset altamente desbalanceado - Se requiere balanceo</small>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <h6 class="text-info"><i class="fas fa-database"></i> Calidad de Datos</h6>
+                <p class="mb-1"><strong>Valores nulos:</strong> ${Object.values(data.missing_values).reduce((a, b) => a + b, 0)}</p>
+                <p class="mb-0"><strong>Duplicados:</strong> ${data.duplicates}</p>
+            </div>
+            
+            <h5 class="mt-4 mb-3"><i class="fas fa-list"></i> Columnas del Dataset</h5>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead class="table-dark">
+                        <tr><th>Columna</th><th>Tipo</th></tr>
+                    </thead>
+                    <tbody>
+                        ${data.columns.slice(0, 10).map(col => `
+                            <tr>
+                                <td><code>${col}</code></td>
+                                <td><span class="badge bg-secondary">${data.dtypes[col]}</span></td>
+                            </tr>
+                        `).join('')}
+                        ${data.columns.length > 10 ? `<tr><td colspan="2" class="text-center text-muted"><small>... y ${data.columns.length - 10} columnas más</small></td></tr>` : ''}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    
+    function renderPhase2(data, viz) {
+        return `
+            <h4 class="mb-3"><i class="fas fa-chart-line"></i> Análisis Exploratorio</h4>
+            
+            <div class="chart-container">
+                <h6>Distribución de Clases</h6>
+                <div id="classDistChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h6>Mapa de Correlación</h6>
+                <div id="correlationChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h6>Análisis Temporal</h6>
+                <div id="timeChart"></div>
+            </div>
+        `;
+    }
+    
+    function renderPhase3(data) {
+        return `
+            <h4 class="mb-3"><i class="fas fa-broom"></i> Preparación de Datos</h4>
+            
+            <div class="metric-card">
+                <h6 class="text-success"><i class="fas fa-cogs"></i> Técnicas Aplicadas</h6>
+                <p class="mb-1"><strong>Balanceo:</strong> <span class="badge bg-primary">${data.balance_method.toUpperCase()}</span></p>
+                <p class="mb-0"><strong>Escalado:</strong> <span class="badge bg-info">${data.scale_method.toUpperCase()}</span></p>
+            </div>
+            
+            <div class="metric-card">
+                <h6 class="text-warning"><i class="fas fa-cut"></i> División de Datos</h6>
+                <p class="mb-1"><strong>Entrenamiento:</strong> ${data.train_shape[0].toLocaleString()} muestras × ${data.train_shape[1]} features</p>
+                <p class="mb-0"><strong>Prueba:</strong> ${data.test_shape[0].toLocaleString()} muestras × ${data.test_shape[1]} features</p>
+            </div>
+            
+            <div class="metric-card">
+                <h6 class="text-primary"><i class="fas fa-balance-scale"></i> Distribución Post-Balanceo</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <p class="mb-0"><small><strong>Train:</strong></small></p>
+                        ${Object.entries(data.train_class_dist).map(([k, v]) => `
+                            <p class="mb-0"><small>Clase ${k}: ${v.toLocaleString()}</small></p>
+                        `).join('')}
+                    </div>
+                    <div class="col-6">
+                        <p class="mb-0"><small><strong>Test:</strong></small></p>
+                        ${Object.entries(data.test_class_dist).map(([k, v]) => `
+                            <p class="mb-0"><small>Clase ${k}: ${v.toLocaleString()}</small></p>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderPhase4(data) {
+        return `
+            <h4 class="mb-3"><i class="fas fa-robot"></i> Modelado</h4>
+            
+            <div class="metric-card">
+                <h6 class="text-primary"><i class="fas fa-list"></i> Modelos Entrenados</h6>
+                <p class="mb-2"><strong>Total:</strong> ${data.total_models} modelos</p>
+                <ul class="list-group">
+                    ${data.models_trained.map(model => `
+                        <li class="list-group-item">
+                            <i class="fas fa-robot text-primary"></i> ${model}
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <h6><i class="fas fa-info-circle"></i> Algoritmos Utilizados</h6>
+                <p class="mb-0 small">Se entrenaron múltiples algoritmos de clasificación para comparar su rendimiento en la detección de fraudes.</p>
+            </div>
+        `;
+    }
+    
+    function renderPhase5(data, viz) {
+        return `
+            <h4 class="mb-3"><i class="fas fa-trophy"></i> Evaluación de Modelos</h4>
+            
+            <div class="alert alert-success">
+                <h6><i class="fas fa-award"></i> Mejor Modelo: ${data.best_model}</h6>
+                <div class="row mt-2">
+                    <div class="col-6 col-md-3">
+                        <small><strong>Accuracy</strong></small>
+                        <p class="mb-0">${(data.best_metrics.accuracy * 100).toFixed(2)}%</p>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <small><strong>Precision</strong></small>
+                        <p class="mb-0">${(data.best_metrics.precision * 100).toFixed(2)}%</p>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <small><strong>Recall</strong></small>
+                        <p class="mb-0">${(data.best_metrics.recall * 100).toFixed(2)}%</p>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <small><strong>F1-Score</strong></small>
+                        <p class="mb-0">${(data.best_metrics.f1_score * 100).toFixed(2)}%</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h6 class="mt-4 mb-3">Comparación de Modelos</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Modelo</th>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.comparison_table.map((row, idx) => `
+                            <tr class="${idx === 0 ? 'table-success' : ''}">
+                                <td><strong>${row.Model}</strong></td>
+                                <td>${(row.Accuracy * 100).toFixed(1)}%</td>
+                                <td>${(row.Precision * 100).toFixed(1)}%</td>
+                                <td>${(row.Recall * 100).toFixed(1)}%</td>
+                                <td>${(row['F1-Score'] * 100).toFixed(1)}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="chart-container mt-3">
+                <h6>Curva ROC</h6>
+                <div id="rocChart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h6>Curva Precision-Recall</h6>
+                <div id="prChart"></div>
+            </div>
+        `;
+    }
+    
+    function renderPhase6() {
+        return `
+            <h4 class="mb-3"><i class="fas fa-rocket"></i> Despliegue</h4>
+            
+            <div class="alert alert-success">
+                <h6><i class="fas fa-check-circle"></i> Aplicación Activa</h6>
+                <p class="mb-0">Esta aplicación web representa la fase de despliegue del proyecto CRISP-DM.</p>
+            </div>
+            
+            <div class="metric-card">
+                <h6 class="text-primary"><i class="fas fa-cogs"></i> Características</h6>
+                <ul class="mb-0">
+                    <li>Interfaz web interactiva con Flask</li>
+                    <li>Visualizaciones dinámicas con Plotly</li>
+                    <li>Navegación por fases CRISP-DM</li>
+                    <li>Panel lateral estilo Claude</li>
+                    <li>Métricas en tiempo real</li>
+                </ul>
+            </div>
+            
+            <div class="metric-card">
+                <h6 class="text-success"><i class="fas fa-code"></i> Tecnologías</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge bg-primary">Flask</span>
+                    <span class="badge bg-success">Plotly</span>
+                    <span class="badge bg-info">Bootstrap 5</span>
+                    <span class="badge bg-warning text-dark">scikit-learn</span>
+                    <span class="badge bg-danger">XGBoost</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderVisualizations(viz) {
+        if (viz.class_distribution) {
+            try {
+                const data = JSON.parse(viz.class_distribution);
+                Plotly.newPlot('classDistChart', data.data, data.layout, {responsive: true});
+            } catch(e) { console.error('Error plotting class_distribution:', e); }
+        }
+        
+        if (viz.correlation_heatmap) {
+            try {
+                const data = JSON.parse(viz.correlation_heatmap);
+                Plotly.newPlot('correlationChart', data.data, data.layout, {responsive: true});
+            } catch(e) { console.error('Error plotting correlation:', e); }
+        }
+        
+        if (viz.time_analysis) {
+            try {
+                const data = JSON.parse(viz.time_analysis);
+                Plotly.newPlot('timeChart', data.data, data.layout, {responsive: true});
+            } catch(e) { console.error('Error plotting time:', e); }
+        }
+        
+        if (viz.roc_curve) {
+            try {
+                const data = JSON.parse(viz.roc_curve);
+                Plotly.newPlot('rocChart', data.data, data.layout, {responsive: true});
+            } catch(e) { console.error('Error plotting ROC:', e); }
+        }
+        
+        if (viz.precision_recall_curve) {
+            try {
+                const data = JSON.parse(viz.precision_recall_curve);
+                Plotly.newPlot('prChart', data.data, data.layout, {responsive: true});
+            } catch(e) { console.error('Error plotting PR:', e); }
+        }
+    }
+});
 </script>
-
-<style>
-    .phase-card {
-        transition: all 0.3s ease;
-        border: 2px solid #dee2e6;
-    }
-    
-    .phase-card.disabled {
-        opacity: 0.5;
-        pointer-events: none;
-    }
-    
-    .phase-card.active {
-        border-color: #0d6efd;
-        box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
-    }
-    
-    .phase-card.completed {
-        border-color: #198754;
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-    }
-    
-    .bg-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-</style>
 {% endblock %}

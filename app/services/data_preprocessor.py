@@ -1,265 +1,250 @@
+# -*- coding: utf-8 -*-
 """
 Servicio para preprocesamiento de datos
 Principio SOLID: Single Responsibility - Solo preprocesa datos
 """
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
-from typing import Tuple, Optional
+from imblearn.combine import SMOTETomek
+from typing import Tuple
 
 
 class DataPreprocessor:
-    """Clase responsable del preprocesamiento de datos"""
-
-    def __init__(self):
-        self.scaler = RobustScaler()
-        self.is_fitted = False
-
-    def scale_features(
-        self,
-        df: pd.DataFrame,
-        features_to_scale: list = ['Time', 'Amount']
-    ) -> pd.DataFrame:
+    """
+    Clase responsable del preprocesamiento completo de datos
+    Principio SOLID: Single Responsibility
+    """
+    
+    def __init__(self, test_size: float = 0.2, random_state: int = 42):
         """
-        Escalar caracter�sticas usando RobustScaler
-
         Args:
-            df: DataFrame con datos
-            features_to_scale: Lista de columnas a escalar
-
+            test_size: Proporción de datos para test
+            random_state: Semilla para reproducibilidad
+        """
+        self.test_size = test_size
+        self.random_state = random_state
+        self.scaler = None
+        self.is_fitted = False
+    
+    def clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Limpiar datos: eliminar duplicados y valores nulos
+        
+        Args:
+            df: DataFrame original
+            
         Returns:
-            DataFrame con caracter�sticas escaladas
+            DataFrame limpio
         """
-        df_processed = df.copy()
-
-        for feature in features_to_scale:
-            if feature in df_processed.columns:
-                scaled_feature_name = f"{feature}_scaled"
-                df_processed[scaled_feature_name] = self.scaler.fit_transform(
-                    df_processed[[feature]]
-                )
-                # Eliminar la columna original
-                df_processed.drop(feature, axis=1, inplace=True)
-                print(f" Feature '{feature}' escalada y renombrada a '{scaled_feature_name}'")
-
-        self.is_fitted = True
-        return df_processed
-
-    def prepare_features_target(
-        self,
-        df: pd.DataFrame,
-        target_column: str = 'Class'
-    ) -> Tuple[pd.DataFrame, pd.Series]:
+        df_clean = df.copy()
+        
+        # Eliminar duplicados
+        duplicates_count = df_clean.duplicated().sum()
+        if duplicates_count > 0:
+            print(f"  Eliminando {duplicates_count} filas duplicadas...")
+            df_clean = df_clean.drop_duplicates()
+        
+        # Eliminar valores nulos
+        null_count = df_clean.isnull().sum().sum()
+        if null_count > 0:
+            print(f"  Eliminando {null_count} valores nulos...")
+            df_clean = df_clean.dropna()
+        
+        print(f"  Dataset limpio: {df_clean.shape}")
+        return df_clean
+    
+    def split_data(self, df: pd.DataFrame, target_col: str = 'Class') -> Tuple:
         """
-        Separar caracter�sticas (X) y variable objetivo (y)
-
+        Dividir datos en entrenamiento y prueba
+        
         Args:
             df: DataFrame completo
-            target_column: Nombre de la columna objetivo
-
+            target_col: Nombre de la columna objetivo
+            
         Returns:
-            Tupla (X, y)
+            Tupla (X_train, X_test, y_train, y_test)
         """
-        if target_column not in df.columns:
-            raise ValueError(f"Columna '{target_column}' no encontrada en el DataFrame")
-
-        X = df.drop(target_column, axis=1)
-        y = df[target_column]
-
-        print(f"Features (X): {X.shape}")
-        print(f"Target (y): {y.shape}")
-        print(f"Distribuci�n del target: {y.value_counts().to_dict()}")
-
-        return X, y
-
-    @staticmethod
-    def get_correlation_with_target(
-        df: pd.DataFrame,
-        target_column: str = 'Class',
-        top_n: int = 15
-    ) -> pd.Series:
+        X = df.drop(target_col, axis=1)
+        y = df[target_col]
+        
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y,
+            test_size=self.test_size,
+            random_state=self.random_state,
+            stratify=y
+        )
+        
+        print(f"  Train: {X_train.shape}, Test: {X_test.shape}")
+        print(f"  Train class dist: {pd.Series(y_train).value_counts().to_dict()}")
+        
+        return X_train, X_test, y_train, y_test
+    
+    def balance_data(self, X: pd.DataFrame, y: pd.Series, 
+                    method: str = 'smote') -> Tuple:
         """
-        Obtener correlaciones con la variable objetivo
-
+        Balancear clases usando diferentes técnicas
+        
         Args:
-            df: DataFrame con datos
-            target_column: Columna objetivo
-            top_n: N�mero de correlaciones m�s altas a retornar
-
-        Returns:
-            Series con correlaciones ordenadas
-        """
-        correlations = df.corr()[target_column].abs().sort_values(ascending=False)
-        return correlations.head(top_n + 1)[1:]  # Excluir la correlaci�n consigo misma
-
-
-class BalancingStrategy:
-    """Clase base para estrategias de balanceo"""
-
-    def __init__(self, strategy_name: str):
-        self.strategy_name = strategy_name
-
-    def balance(self, X, y) -> Tuple:
-        """M�todo a implementar por las estrategias concretas"""
-        raise NotImplementedError
-
-
-class NoBalancingStrategy(BalancingStrategy):
-    """Sin balanceo de clases"""
-
-    def __init__(self):
-        super().__init__('Original')
-
-    def balance(self, X, y) -> Tuple:
-        """Retorna los datos sin modificaci�n"""
-        print(f"Estrategia: {self.strategy_name} (sin balanceo)")
-        print(f"  Distribuci�n: {pd.Series(y).value_counts().to_dict()}")
-        return X, y
-
-
-class SMOTEBalancingStrategy(BalancingStrategy):
-    """Balanceo usando SMOTE (Synthetic Minority Over-sampling Technique)"""
-
-    def __init__(self, sampling_strategy: float = 0.5):
-        super().__init__('SMOTE')
-        self.sampling_strategy = sampling_strategy
-        self.smote = SMOTE(random_state=42, sampling_strategy=sampling_strategy)
-
-    def balance(self, X, y) -> Tuple:
-        """Aplica SMOTE para balancear las clases"""
-        print(f"Estrategia: {self.strategy_name}")
-        print(f"  Distribuci�n original: {pd.Series(y).value_counts().to_dict()}")
-
-        X_balanced, y_balanced = self.smote.fit_resample(X, y)
-
-        print(f"  Distribuci�n balanceada: {pd.Series(y_balanced).value_counts().to_dict()}")
-        return X_balanced, y_balanced
-
-
-class UnderSamplingStrategy(BalancingStrategy):
-    """Balanceo usando Random Under-sampling"""
-
-    def __init__(self, sampling_strategy: float = 0.5):
-        super().__init__('Under-sampling')
-        self.sampling_strategy = sampling_strategy
-        self.rus = RandomUnderSampler(random_state=42, sampling_strategy=sampling_strategy)
-
-    def balance(self, X, y) -> Tuple:
-        """Aplica under-sampling para balancear las clases"""
-        print(f"Estrategia: {self.strategy_name}")
-        print(f"  Distribuci�n original: {pd.Series(y).value_counts().to_dict()}")
-
-        X_balanced, y_balanced = self.rus.fit_resample(X, y)
-
-        print(f"  Distribuci�n balanceada: {pd.Series(y_balanced).value_counts().to_dict()}")
-        return X_balanced, y_balanced
-
-
-class BalancingStrategyFactory:
-    """Factory para crear estrategias de balanceo"""
-
-    @staticmethod
-    def create_strategy(strategy_name: str, **kwargs) -> BalancingStrategy:
-        """
-        Crear una estrategia de balanceo
-
-        Args:
-            strategy_name: Nombre de la estrategia ('Original', 'SMOTE', 'Under-sampling')
-            **kwargs: Par�metros adicionales para la estrategia
-
-        Returns:
-            Instancia de la estrategia
-        """
-        strategies = {
-            'Original': NoBalancingStrategy,
-            'SMOTE': SMOTEBalancingStrategy,
-            'Under-sampling': UnderSamplingStrategy
-        }
-
-        if strategy_name not in strategies:
-            raise ValueError(f"Estrategia desconocida: {strategy_name}")
-
-        if strategy_name == 'Original':
-            return strategies[strategy_name]()
-        else:
-            return strategies[strategy_name](**kwargs)
-
-    @staticmethod
-    def create_all_strategies() -> dict:
-        """Crear todas las estrategias disponibles"""
-        return {
-            'Original': NoBalancingStrategy(),
-            'SMOTE': SMOTEBalancingStrategy(sampling_strategy=0.5),
-            'Under-sampling': UnderSamplingStrategy(sampling_strategy=0.5)
-        }
-
-
-class DataProcessor:
-    """Clase de alto nivel para procesamiento completo de datos"""
-
-    def __init__(self):
-        self.preprocessor = DataPreprocessor()
-
-    def process_data(
-        self,
-        df: pd.DataFrame,
-        features_to_scale: list = ['Time', 'Amount'],
-        target_column: str = 'Class'
-    ) -> Tuple[pd.DataFrame, pd.Series]:
-        """
-        Procesamiento completo de datos
-
-        Args:
-            df: DataFrame original
-            features_to_scale: Caracter�sticas a escalar
-            target_column: Columna objetivo
-
-        Returns:
-            Tupla (X, y) con datos procesados
-        """
-        print("="*60)
-        print("PROCESAMIENTO DE DATOS")
-        print("="*60)
-
-        # Escalar caracter�sticas
-        df_processed = self.preprocessor.scale_features(df, features_to_scale)
-
-        # Separar X y y
-        X, y = self.preprocessor.prepare_features_target(df_processed, target_column)
-
-        print(" Procesamiento completado")
-        return X, y
-
-    def process_and_balance(
-        self,
-        df: pd.DataFrame,
-        strategy_name: str = 'SMOTE',
-        features_to_scale: list = ['Time', 'Amount'],
-        target_column: str = 'Class'
-    ) -> Tuple:
-        """
-        Procesar datos y aplicar estrategia de balanceo
-
-        Args:
-            df: DataFrame original
-            strategy_name: Nombre de la estrategia de balanceo
-            features_to_scale: Caracter�sticas a escalar
-            target_column: Columna objetivo
-
+            X: Features
+            y: Target
+            method: 'smote', 'undersample', 'combined', o 'none'
+            
         Returns:
             Tupla (X_balanced, y_balanced)
         """
-        # Procesar datos
-        X, y = self.process_data(df, features_to_scale, target_column)
-
-        # Aplicar balanceo
-        print(f"\n{'='*60}")
-        print(f"BALANCEO DE CLASES")
-        print(f"{'='*60}")
-
-        strategy = BalancingStrategyFactory.create_strategy(strategy_name)
-        X_balanced, y_balanced = strategy.balance(X, y)
-
+        print(f"  Distribución original: {pd.Series(y).value_counts().to_dict()}")
+        
+        if method == 'none':
+            return X, y
+        
+        elif method == 'smote':
+            sampler = SMOTE(random_state=self.random_state, sampling_strategy=0.5)
+            X_balanced, y_balanced = sampler.fit_resample(X, y)
+            
+        elif method == 'undersample':
+            sampler = RandomUnderSampler(random_state=self.random_state, sampling_strategy=0.5)
+            X_balanced, y_balanced = sampler.fit_resample(X, y)
+            
+        elif method == 'combined':
+            sampler = SMOTETomek(random_state=self.random_state)
+            X_balanced, y_balanced = sampler.fit_resample(X, y)
+            
+        else:
+            raise ValueError(f"Método de balanceo desconocido: {method}")
+        
+        print(f"  Distribución balanceada: {pd.Series(y_balanced).value_counts().to_dict()}")
         return X_balanced, y_balanced
+    
+    def scale_features(self, X_train: pd.DataFrame, X_test: pd.DataFrame,
+                      method: str = 'robust') -> Tuple:
+        """
+        Escalar características numéricas
+        
+        Args:
+            X_train: Features de entrenamiento
+            X_test: Features de prueba
+            method: 'standard' o 'robust'
+            
+        Returns:
+            Tupla (X_train_scaled, X_test_scaled)
+        """
+        if method == 'standard':
+            self.scaler = StandardScaler()
+        elif method == 'robust':
+            self.scaler = RobustScaler()
+        else:
+            raise ValueError(f"Método de escalado desconocido: {method}")
+        
+        # Escalar solo si hay columnas Time o Amount
+        cols_to_scale = []
+        if 'Time' in X_train.columns:
+            cols_to_scale.append('Time')
+        if 'Amount' in X_train.columns:
+            cols_to_scale.append('Amount')
+        
+        if not cols_to_scale:
+            print("  No hay columnas Time/Amount para escalar")
+            return X_train, X_test
+        
+        # Crear copias
+        X_train_scaled = X_train.copy()
+        X_test_scaled = X_test.copy()
+        
+        # Escalar
+        X_train_scaled[cols_to_scale] = self.scaler.fit_transform(X_train[cols_to_scale])
+        X_test_scaled[cols_to_scale] = self.scaler.transform(X_test[cols_to_scale])
+        
+        print(f"  Columnas escaladas: {cols_to_scale}")
+        self.is_fitted = True
+        
+        return X_train_scaled, X_test_scaled
+    
+    def get_feature_importance_data(self, X: pd.DataFrame, y: pd.Series,
+                                   top_n: int = 15) -> pd.DataFrame:
+        """
+        Calcular correlaciones con el target
+        
+        Args:
+            X: Features
+            y: Target
+            top_n: Número de features más importantes
+            
+        Returns:
+            DataFrame con correlaciones
+        """
+        df_temp = X.copy()
+        df_temp['target'] = y
+        
+        correlations = df_temp.corr()['target'].abs().sort_values(ascending=False)
+        correlations = correlations.drop('target')
+        
+        return correlations.head(top_n)
+
+
+class DataLoader:
+    """Clase para cargar diferentes fuentes de datos"""
+    
+    def __init__(self, loader_strategy):
+        """
+        Args:
+            loader_strategy: Estrategia de carga (CSVDataLoader, etc.)
+        """
+        self.loader = loader_strategy
+    
+    def load_data(self, source) -> pd.DataFrame:
+        """
+        Cargar datos desde una fuente
+        
+        Args:
+            source: Ruta del archivo o fuente de datos
+            
+        Returns:
+            DataFrame con los datos
+        """
+        return self.loader.load_from_file(source)
+    
+    def get_data_info(self, df: pd.DataFrame) -> dict:
+        """
+        Obtener información del dataset
+        
+        Args:
+            df: DataFrame
+            
+        Returns:
+            Diccionario con información
+        """
+        return {
+            'shape': df.shape,
+            'columns': df.columns.tolist(),
+            'dtypes': df.dtypes.astype(str).to_dict(),
+            'memory_usage': df.memory_usage(deep=True).sum() / 1024**2,
+            'duplicates': int(df.duplicated().sum()),
+            'missing_values': df.isnull().sum().sum()
+        }
+
+
+class CSVDataLoader:
+    """Cargador de archivos CSV"""
+    
+    @staticmethod
+    def load_from_file(file_path: str) -> pd.DataFrame:
+        """
+        Cargar CSV desde archivo
+        
+        Args:
+            file_path: Ruta del archivo
+            
+        Returns:
+            DataFrame
+        """
+        import os
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Archivo no encontrado: {file_path}")
+        
+        df = pd.read_csv(file_path)
+        print(f"Archivo cargado: {df.shape[0]:,} filas x {df.shape[1]} columnas")
+        return df

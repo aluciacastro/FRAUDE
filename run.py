@@ -12,8 +12,8 @@ def create_app():
     # Especificar la carpeta app como base
     app = Flask(
         __name__,
-        template_folder='app/templates',  # ← Agregar esto
-        static_folder='app/static'         # ← Agregar esto
+        template_folder='app/templates',
+        static_folder='app/static'
     )
 
     # Configuración
@@ -21,12 +21,22 @@ def create_app():
     app.config['DEBUG'] = DEBUG
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 
+    # Registrar filtros personalizados de Jinja2
+    @app.template_filter('number_format')
+    def number_format(value):
+        """Formatear números con separadores de miles"""
+        try:
+            return "{:,}".format(int(value))
+        except (ValueError, TypeError):
+            return value
+
     # Registrar blueprints
     from app.routes.main_routes import bp as main_bp
     app.register_blueprint(main_bp)
 
     # Crear directorios necesarios
     os.makedirs('data', exist_ok=True)
+    os.makedirs('data/precomputed', exist_ok=True)
     os.makedirs('models_saved', exist_ok=True)
 
     return app
